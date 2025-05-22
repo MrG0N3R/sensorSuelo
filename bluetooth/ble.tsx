@@ -1,11 +1,26 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { PermissionsAndroid, Platform } from "react-native";
+import {
+    BleError,
+    BleManager,
+    Characteristic,
+    Device,
+} from "react-native-ble-plx";
 
-// Mock device type that mimics the original Device type
-interface Device {
-  id: string;
-  name: string;
-  localName?: string;
-}
+import * as ExpoDevice from "expo-device";
+
+const HEART_RATE_UUID = "0000180d-0000-1000-8000-00805f9b34fb";
+const HEART_RATE_CHARACTERISTIC = "00002a37-0000-1000-8000-00805f9b34fb";
+
+const SERVICE_UUID = "19b10000-e8f2-537e-4f6c-d104768a1214";
+
+const HUMI_CHARACTERISTIC_UUID = "b256faae-1447-4e32-9410-2c2653d3885c";
+const TEMP_CHARACTERISTIC_UUID = "86dd3402-7feb-4e7c-80d0-a4ba5709f1ad";
+const COND_CHARACTERISTIC_UUID = "7ff02cdb-c26f-4e64-ac9d-203d4b03094d";
+const PH_CHARACTERISTIC_UUID = "a38cdf97-2ace-42e3-8ec8-c4a2caffb1fe";
+const NITRO_CHARACTERISTIC_UUID = "89b4a0fa-eb32-4666-85d4-16a0ef4c706b";
+const PHOS_CHARACTERISTIC_UUID = "77f636f6-456c-4d76-aec6-7e439a99abd3";
+const POTA_CHARACTERISTIC_UUID = "35e92c28-d928-466b-8911-d235ae07f6e7";
 
 interface BluetoothLowEnergyApi {
     requestPermissions(): Promise<boolean>;
@@ -23,84 +38,312 @@ interface BluetoothLowEnergyApi {
     pota: number;
 }
 
-// Mock devices data
-const mockDevices: Device[] = [
-  { id: "1", name: "Sensor de Suelo 1" },
-  { id: "2", name: "Sensor de Suelo 2" },
-  { id: "3", name: "Sensor de Suelo 3" },
-];
-
 function useBLE(): BluetoothLowEnergyApi {
-    // Mock states
+    //Instancia que controla el Bluetooth
+    const bleManager = useMemo(() => new BleManager(), []);
+
+    //Estado que guarda los dispositivos encontrados
     const [allDevices, setAllDevices] = useState<Device[]>([]);
+
+    //Guarda los dispositivos que estan conectados
     const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
 
-    // Test data values
-    const [humi, setHumi] = useState<number>(60);
-    const [temp, setTemp] = useState<number>(25.5);
-    const [cond, setCond] = useState<number>(450);
-    const [ph, setPh] = useState<number>(6.8);
-    const [nitro, setNitro] = useState<number>(35);
-    const [phos, setPhos] = useState<number>(18);
-    const [pota, setPota] = useState<number>(22);
+    //Valores recibidos del sensor
+    const [humi, setHumi] = useState<number>(0);
+    const [temp, setTemp] = useState<number>(0);
+    const [cond, setCond] = useState<number>(0);
+    const [ph, setPh] = useState<number>(0);
+    const [nitro, setNitro] = useState<number>(0);
+    const [phos, setPhos] = useState<number>(0);
+    const [pota, setPota] = useState<number>(0);
 
-    // Mock function to simulate permission request
-    const requestPermissions = async (): Promise<boolean> => {
-        console.log('Requesting mock permissions');
-        return true;
-    };
-
-    // Mock function to simulate device scanning
-    const scanForPeripherals = () => {
-        console.log('Scanning for mock devices');
-        setTimeout(() => {
-            setAllDevices(mockDevices);
-        }, 2000); // Simulate 2 seconds of scanning
-    };
-
-    // Mock function to simulate connecting to a device
-    const connectToDevice = async (device: Device) => {
-        console.log(`Connecting to mock device: ${device.name}`);
-        
-        setTimeout(() => {
-            setConnectedDevice(device);
-            startGeneratingRandomData();
-        }, 1000); // Simulate 1 second connection time
-    };
-
-    // Mock function to simulate disconnecting
-    const disconnectFromDevice = () => {
-        console.log('Disconnecting mock device');
-        setConnectedDevice(null);
-        setHumi(60);
-        setTemp(25.5);
-        setCond(450);
-        setPh(6.8);
-        setNitro(35);
-        setPhos(18);
-        setPota(22);
-    };
-
-    // Generate random data within reasonable ranges to simulate sensor readings
-    const startGeneratingRandomData = () => {
-        const interval = setInterval(() => {
-            if (connectedDevice) {
-                setHumi(Math.floor(Math.random() * (80 - 40 + 1) + 40)); // 40-80%
-                setTemp(parseFloat((Math.random() * (30 - 20) + 20).toFixed(1))); // 20-30°C
-                setCond(Math.floor(Math.random() * (600 - 300 + 1) + 300)); // 300-600 units
-                setPh(parseFloat((Math.random() * (7.5 - 5.5) + 5.5).toFixed(1))); // pH 5.5-7.5
-                setNitro(Math.floor(Math.random() * (50 - 20 + 1) + 20)); // 20-50 units
-                setPhos(Math.floor(Math.random() * (30 - 10 + 1) + 10)); // 10-30 units
-                setPota(Math.floor(Math.random() * (35 - 15 + 1) + 15)); // 15-35 units
-            } else {
-                clearInterval(interval);
+    const requestAndroid31Permissions = async () => {
+        const bluetoothScanPermission = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+            {
+                title: "Location Permission",
+                message: "Bluetooth Low Energy requires Location",
+                buttonPositive: "OK",
             }
-        }, 3000); // Update every 3 seconds
+        );
+        const bluetoothConnectPermission = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+            {
+                title: "Location Permission",
+                message: "Bluetooth Low Energy requires Location",
+                buttonPositive: "OK",
+            }
+        );
+        const fineLocationPermission = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            {
+                title: "Location Permission",
+                message: "Bluetooth Low Energy requires Location",
+                buttonPositive: "OK",
+            }
+        );
 
-        // Clean up on unmount
-        return () => clearInterval(interval);
+        return (
+            bluetoothScanPermission === "granted" &&
+            bluetoothConnectPermission === "granted" &&
+            fineLocationPermission === "granted"
+        );
     };
 
+    //Detecta la versión de Android y solicita permisos necesarios para
+    //escanear y conectar Bluetooth, ademas la ubicación para BLE
+    const requestPermissions = async () => {
+        if (Platform.OS === "android") {
+            if ((ExpoDevice.platformApiLevel ?? -1) < 31) {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                    {
+                        title: "Location Permission",
+                        message: "Bluetooth Low Energy requires Location",
+                        buttonPositive: "OK",
+                    }
+                );
+                return granted === PermissionsAndroid.RESULTS.GRANTED;
+            } else {
+                const isAndroid31PermissionsGranted =
+                    await requestAndroid31Permissions();
+
+                return isAndroid31PermissionsGranted;
+            }
+        } else {
+            return true;
+        }
+    };
+
+    //Verifica si el dispositivo ya fue escaneado
+    //para evitar duplicados
+    const isDuplicteDevice = (devices: Device[], nextDevice: Device) =>
+        devices.findIndex((device) => nextDevice.id === device.id) > -1;
+
+    const scanForPeripherals = () =>
+        bleManager.startDeviceScan(null, null, (error, device) => {
+            if (error) {
+                alert(error);
+                console.log(error);
+            }
+            if (device) {
+                setAllDevices((prevState: Device[]) => {
+                    if (!isDuplicteDevice(prevState, device)) {
+                        return [...prevState, device];
+                    }
+                    return prevState;
+                });
+            }
+        });
+
+    //Conecta al dispositivo seleccionado con la ID y descubre todos los servicios y caracteristicas
+    //necesario para ller datos
+    //detiene el escaneo y comienza a recibir datos
+    const connectToDevice = async (device: Device) => {
+        try {
+            const deviceConnection = await bleManager.connectToDevice(
+                device.id
+            );
+            setConnectedDevice(deviceConnection);
+            await deviceConnection.discoverAllServicesAndCharacteristics();
+            bleManager.stopDeviceScan();
+            startStreamingData(deviceConnection);
+        } catch (e) {
+            console.log("FAILED TO CONNECT", e);
+            alert(e);
+        }
+    };
+
+    //Cancela la conexión con el dispositivo
+    const disconnectFromDevice = () => {
+        if (connectedDevice) {
+            bleManager.cancelDeviceConnection(connectedDevice.id);
+            setConnectedDevice(null);
+            setHumi(0);
+            setTemp(0);
+            setCond(0);
+            setPh(0);
+            setNitro(0);
+            setPhos(0);
+            setPota(0);
+        }
+    };
+
+    // Lee los datos de PH
+    const onPhUpdate = (
+        error: BleError | null,
+        characteristic: Characteristic | null
+    ) => {
+        if (error) {
+            console.log(error);
+            return -1;
+        } else if (!characteristic?.value) {
+            console.log("No Data was recieved");
+            return -1;
+        }
+
+        const value = Number.parseFloat(characteristic.value);
+        setPh(value);
+    };
+
+    //// Lee los datos de Humedad
+    const onHumiUpdate = (
+        error: BleError | null,
+        characteristic: Characteristic | null
+    ) => {
+        if (error) {
+            console.log(error);
+            return -1;
+        } else if (!characteristic?.value) {
+            console.log("No Data was received");
+            return -1;
+        }
+
+        const value = Number.parseFloat(characteristic.value);
+        setHumi(value);
+    };
+
+    // Lee los datos de Temperatura
+    const onTempUpdate = (
+        error: BleError | null,
+        characteristic: Characteristic | null
+    ) => {
+        if (error) {
+            console.log(error);
+            return -1;
+        } else if (!characteristic?.value) {
+            console.log("No Data was received");
+            return -1;
+        }
+
+        const value = Number.parseFloat(characteristic.value);
+        setTemp(value);
+    };
+
+    // Lee los datos de Conductividad
+    const onCondUpdate = (
+        error: BleError | null,
+        characteristic: Characteristic | null
+    ) => {
+        if (error) {
+            console.log(error);
+            return -1;
+        } else if (!characteristic?.value) {
+            console.log("No Data was received");
+            return -1;
+        }
+
+        const value = Number.parseFloat(characteristic.value);
+        setCond(value);
+    };
+
+    // Lee los datos de Nitrogeno
+    const onNitroUpdate = (
+        error: BleError | null,
+        characteristic: Characteristic | null
+    ) => {
+        if (error) {
+            console.log(error);
+            return -1;
+        } else if (!characteristic?.value) {
+            console.log("No Data was received");
+            return -1;
+        }
+
+        const value = Number.parseFloat(characteristic.value);
+        setNitro(value);
+    };
+
+    // Lee los datos de Fosforo
+    const onPhosUpdate = (
+        error: BleError | null,
+        characteristic: Characteristic | null
+    ) => {
+        if (error) {
+            console.log(error);
+            return -1;
+        } else if (!characteristic?.value) {
+            console.log("No Data was received");
+            return -1;
+        }
+
+        const value = Number.parseFloat(characteristic.value);
+        setPhos(value);
+    };
+
+    //Lee los datos de potasio
+    const onPotaUpdate = (
+        error: BleError | null,
+        characteristic: Characteristic | null
+    ) => {
+        if (error) {
+            console.log(error);
+            return -1;
+        } else if (!characteristic?.value) {
+            console.log("No Data was received");
+            return -1;
+        }
+
+        const value = Number.parseFloat(characteristic.value);
+        setPota(value);
+    };
+
+    // Aqui se le dice al dispositivo que monitoree los cambios en las caracteristicas
+
+    const startStreamingData = async (device: Device) => {
+        if (device) {
+            device.monitorCharacteristicForService(
+                SERVICE_UUID,
+                PH_CHARACTERISTIC_UUID,
+                onPhUpdate
+            );
+            device.monitorCharacteristicForService(
+                SERVICE_UUID,
+                HUMI_CHARACTERISTIC_UUID,
+                onHumiUpdate
+            );
+
+            device.monitorCharacteristicForService(
+                SERVICE_UUID,
+                TEMP_CHARACTERISTIC_UUID,
+                onTempUpdate
+            );
+
+            device.monitorCharacteristicForService(
+                SERVICE_UUID,
+                COND_CHARACTERISTIC_UUID,
+                onCondUpdate
+            );
+
+            device.monitorCharacteristicForService(
+                SERVICE_UUID,
+                PH_CHARACTERISTIC_UUID,
+                onPhUpdate
+            );
+
+            device.monitorCharacteristicForService(
+                SERVICE_UUID,
+                NITRO_CHARACTERISTIC_UUID,
+                onNitroUpdate
+            );
+
+            device.monitorCharacteristicForService(
+                SERVICE_UUID,
+                PHOS_CHARACTERISTIC_UUID,
+                onPhosUpdate
+            );
+
+            device.monitorCharacteristicForService(
+                SERVICE_UUID,
+                POTA_CHARACTERISTIC_UUID,
+                onPotaUpdate
+            );
+        } else {
+            console.log("No Device Connected");
+        }
+    };
+
+    // Entonces el hook regresa funciones y estados para que los uses en el componente de react
     return {
         scanForPeripherals,
         requestPermissions,
