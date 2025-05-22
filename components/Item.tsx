@@ -1,10 +1,6 @@
 import colorScheme from "@/constants/colorScheme";
-import {
-  FontAwesome,
-  Ionicons,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { StyleSheet, Text, View } from "react-native";
 import { Collapsible } from "./Collapsible";
 
 export type ItemProps = {
@@ -31,242 +27,109 @@ export function Item({
     pota,
 }: ItemProps) {
     return (
-        <View
-            style={{
-                borderRadius: 5,
-                borderBottomWidth: 5,
-                borderColor: colorScheme.accent,
-                marginTop: 5,
-            }}
-        >
+        <View style={styles.container}>
             <Collapsible title={title}>
-                <View style={{ flexDirection: "column" }}>
-                    <Text
-                        style={{
-                            color: colorScheme.tint,
-                            fontSize: 20,
-                            alignSelf: "center",
-                        }}
-                    >
-                        {" "}
-                        {date}{" "}
-                    </Text>
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            marginTop: 10,
-                            marginLeft: 15,
-                        }}
-                    >
-                        <FontAwesome
-                            name="thermometer-empty"
-                            size={70}
-                            color={colorScheme.icon2}
-                            style={{ backgroundColor: colorScheme.accent }}
-                        />
-                        <View style={{ flexDirection: "column", flex: 1 }}>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                Temperatura
-                            </Text>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                {temp}°C
-                            </Text>
+                <View style={styles.contentContainer}>
+                    <Text style={styles.dateText}>{date}</Text>
+
+                    {/* Temperature and Humidity Row */}
+                    <View style={styles.row}>
+                        <View style={styles.sensorGroup}>
+                            <View style={styles.iconContainer}>
+                                <MaterialIcons
+                                    name="thermostat"
+                                    size={40}
+                                    color={colorScheme.icon2}
+                                />
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.labelText}>
+                                    Temperatura
+                                </Text>
+                                <Text style={styles.valueText}>{temp}°C</Text>
+                            </View>
                         </View>
-                        <Ionicons
-                            name="water"
-                            size={70}
-                            color={colorScheme.icon2}
-                            style={{ backgroundColor: colorScheme.accent }}
-                        />
-                        <View style={{ flexDirection: "column", flex: 1 }}>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                Humedad
-                            </Text>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                {" "}
-                                {humi}{" "}
-                            </Text>
+
+                        <View style={styles.sensorGroup}>
+                            <View style={styles.iconContainer}>
+                                <MaterialIcons
+                                    name="water-drop"
+                                    size={40}
+                                    color={colorScheme.icon2}
+                                />
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.labelText}>Humedad</Text>
+                                <Text style={styles.valueText}>{humi}%</Text>
+                            </View>
                         </View>
                     </View>
-                    <View style={{ flexDirection: "row", marginTop: 10 }}>
-                        <MaterialCommunityIcons
-                            name="lightning-bolt"
-                            size={60}
-                            color={colorScheme.icon2}
-                            style={{
-                                backgroundColor: colorScheme.accent,
-                                alignSelf: "center",
-                            }}
-                        />
-                        <View style={{ flexDirection: "column", flex: 1 }}>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                Conductividad
-                            </Text>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                {" "}
-                                {cond} us/cm
-                            </Text>
+
+                    {/* Conductivity and pH Row */}
+                    <View style={styles.row}>
+                        <View style={styles.sensorGroup}>
+                            <View style={styles.iconContainer}>
+                                <MaterialCommunityIcons
+                                    name="lightning-bolt"
+                                    size={40}
+                                    color={colorScheme.icon2}
+                                />
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.labelText}>
+                                    Conductividad
+                                </Text>
+                                <Text style={styles.valueText}>
+                                    {cond} us/cm
+                                </Text>
+                            </View>
                         </View>
-                        <FontAwesome
-                            name="flask"
-                            size={70}
-                            color={colorScheme.icon2}
-                            style={{ backgroundColor: colorScheme.accent }}
-                        />
-                        <View style={{ flexDirection: "column", flex: 1 }}>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                pH
-                            </Text>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                {" "}
-                                {ph}{" "}
-                            </Text>
+
+                        <View style={styles.sensorGroup}>
+                            <View style={styles.iconContainer}>
+                                <MaterialIcons
+                                    name="science"
+                                    size={40}
+                                    color={colorScheme.icon2}
+                                />
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.labelText}>pH</Text>
+                                <Text style={styles.valueText}>{ph}</Text>
+                            </View>
                         </View>
                     </View>
-                    <View style={{ flexDirection: "row", marginTop: 10 }}>
-                        <Text
-                            style={{
-                                alignSelf: "center",
-                                fontSize: 40,
-                                color: colorScheme.icon2,
-                                marginLeft: 15,
-                                fontStyle: "italic",
-                            }}
-                        >
-                            N
-                        </Text>
-                        <View style={{ flexDirection: "column", flex: 1 }}>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                Nitrogeno
-                            </Text>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                {" "}
-                                {nitro} mg/kg
-                            </Text>
+
+                    {/* NPK Row */}
+                    <View style={styles.npkRow}>
+                        <View style={styles.npkGroup}>
+                            <Text style={styles.npkSymbol}>N</Text>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.labelText}>Nitrógeno</Text>
+                                <Text style={styles.valueText}>
+                                    {nitro} mg/kg
+                                </Text>
+                            </View>
                         </View>
-                        <Text
-                            style={{
-                                alignSelf: "center",
-                                fontSize: 40,
-                                color: colorScheme.icon2,
-                                marginLeft: 20,
-                                fontStyle: "italic",
-                            }}
-                        >
-                            P
-                        </Text>
-                        <View style={{ flexDirection: "column", flex: 1 }}>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                Fosforo
-                            </Text>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                {" "}
-                                {phos} mg/kg
-                            </Text>
+
+                        <View style={styles.npkGroup}>
+                            <Text style={styles.npkSymbol}>P</Text>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.labelText}>Fósforo</Text>
+                                <Text style={styles.valueText}>
+                                    {phos} mg/kg
+                                </Text>
+                            </View>
                         </View>
-                        <Text
-                            style={{
-                                alignSelf: "center",
-                                fontSize: 40,
-                                color: colorScheme.icon2,
-                                marginLeft: 20,
-                                fontStyle: "italic",
-                            }}
-                        >
-                            K
-                        </Text>
-                        <View style={{ flexDirection: "column", flex: 1 }}>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                Potasio
-                            </Text>
-                            <Text
-                                style={{
-                                    alignSelf: "center",
-                                    fontSize: 20,
-                                    color: colorScheme.tint,
-                                }}
-                            >
-                                {" "}
-                                {pota} mg/kg
-                            </Text>
+
+                        <View style={styles.npkGroup}>
+                            <Text style={styles.npkSymbol}>K</Text>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.labelText}>Potasio</Text>
+                                <Text style={styles.valueText}>
+                                    {pota} mg/kg
+                                </Text>
+                            </View>
                         </View>
                     </View>
                 </View>
@@ -274,3 +137,82 @@ export function Item({
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        borderRadius: 15,
+        borderBottomWidth: 5,
+        borderColor: colorScheme.accent,
+        marginTop: 15,
+        marginHorizontal: 15,
+    },
+    contentContainer: {
+        flexDirection: "column",
+        width: "100%",
+        backgroundColor: colorScheme.subBackground,
+        padding: 10,
+        borderBottomLeftRadius: 10,
+        borderBottomRightRadius: 10,
+    },
+    dateText: {
+        color: colorScheme.tint,
+        fontSize: 15,
+        alignSelf: "center",
+        marginBottom: 5,
+    },
+    row: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginVertical: 10,
+        paddingHorizontal: 5,
+    },
+    sensorGroup: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "48%",
+    },
+    iconContainer: {
+        width: 50,
+        height: 50,
+        backgroundColor: colorScheme.accent2,
+        borderRadius: 25,
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 10,
+    },
+    textContainer: {
+        flexDirection: "column",
+        flex: 1,
+    },
+    labelText: {
+        fontSize: 15,
+        color: colorScheme.tint,
+        fontWeight: "normal",
+    },
+    valueText: {
+        fontSize: 15,
+        color: colorScheme.tint,
+        fontWeight: "bold",
+        marginTop: 2,
+    },
+    npkRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginVertical: 10,
+        paddingHorizontal: 5,
+    },
+    npkGroup: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "32%",
+    },
+    npkSymbol: {
+        fontSize: 32,
+        fontWeight: "bold",
+        fontStyle: "italic",
+        color: colorScheme.icon2,
+        width: 40,
+        textAlign: "center",
+        marginRight: 5,
+    },
+});

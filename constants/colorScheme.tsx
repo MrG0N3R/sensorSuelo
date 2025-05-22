@@ -13,6 +13,7 @@ export default {
     icon2:'#10431a',
 
     accent:'#5b8e65',
+    accent2:'#517F5A',
     subBackground:'#5b8e65',
 
     button:'#2e6138',

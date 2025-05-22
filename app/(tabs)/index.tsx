@@ -1,12 +1,12 @@
 import {
-  Image,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import useBLE from "@/bluetooth/ble";
@@ -85,8 +85,8 @@ export default function HomeScreen() {
                         <TouchableOpacity
                             style={{
                                 marginLeft: 5,
-                                width: "25%",
-                                height: "100%",
+                                width: "20%",
+                                height: "80%",
                                 backgroundColor: colorScheme.subBackground,
                                 borderRadius: 20,
                                 flexDirection: "column",
@@ -101,7 +101,7 @@ export default function HomeScreen() {
                             />
                             <Text
                                 style={{
-                                    fontSize: 18,
+                                    fontSize: 15,
                                     fontStyle: "normal",
                                     fontWeight: "bold",
                                     color: colorScheme.tint,
@@ -126,7 +126,86 @@ export default function HomeScreen() {
                             pota={pota}
                             temp={temp}
                         />
+                        <Item
+                            title="Actual"
+                            ph={ph}
+                            cond={cond}
+                            date={Date.now().toString()}
+                            humi={humi}
+                            nitro={nitro}
+                            phos={phos}
+                            pota={pota}
+                            temp={temp}
+                        />
+                        <Item
+                            title="Actual"
+                            ph={ph}
+                            cond={cond}
+                            date={Date.now().toString()}
+                            humi={humi}
+                            nitro={nitro}
+                            phos={phos}
+                            pota={pota}
+                            temp={temp}
+                        />
+                        <Item
+                            title="Actual"
+                            ph={ph}
+                            cond={cond}
+                            date={Date.now().toString()}
+                            humi={humi}
+                            nitro={nitro}
+                            phos={phos}
+                            pota={pota}
+                            temp={temp}
+                        />
+                        <Item
+                            title="Actual"
+                            ph={ph}
+                            cond={cond}
+                            date={Date.now().toString()}
+                            humi={humi}
+                            nitro={nitro}
+                            phos={phos}
+                            pota={pota}
+                            temp={temp}
+                        />
+                        <Item
+                            title="Actual"
+                            ph={ph}
+                            cond={cond}
+                            date={Date.now().toString()}
+                            humi={humi}
+                            nitro={nitro}
+                            phos={phos}
+                            pota={pota}
+                            temp={temp}
+                        />
+                        <Item
+                            title="Actual"
+                            ph={ph}
+                            cond={cond}
+                            date={Date.now().toString()}
+                            humi={humi}
+                            nitro={nitro}
+                            phos={phos}
+                            pota={pota}
+                            temp={temp}
+                        />
+                        <Item
+                            title="Actual"
+                            ph={ph}
+                            cond={cond}
+                            date={Date.now().toString()}
+                            humi={humi}
+                            nitro={nitro}
+                            phos={phos}
+                            pota={pota}
+                            temp={temp}
+                        />
+                        
                         <View style={{ height: 120 }} />
+                        
                     </ScrollView>
                 </View>
 
@@ -142,7 +221,7 @@ export default function HomeScreen() {
                         scan();
                     }}
                     style={{
-                        width: "25%",
+                        width: "20%",
                         height: "10%",
                         backgroundColor: colorScheme.button,
                         borderRadius: 20,
@@ -154,6 +233,7 @@ export default function HomeScreen() {
                         position: "absolute",
                         bottom: 25,
                         right: 10,
+                        margin: 10,
                     }}
                 >
                     <MaterialIcons
@@ -198,8 +278,9 @@ const styles = StyleSheet.create({
         backgroundColor: colorScheme.subBackground,
         justifyContent: "center",
         marginHorizontal: 5,
+        marginLeft: 15,
         width: "70%",
-        height: "100%",
+        height: "80%",
         outline: "none",
         fontSize: 20,
         color: colorScheme.tint,
