@@ -1,4 +1,3 @@
-import { BleManager,Device } from "react-native-ble-plx";
-import { useState,useEffect } from "react";
+import { BleManager } from "react-native-ble-plx";
 
 export default new BleManager();
