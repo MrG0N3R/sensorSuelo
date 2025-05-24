@@ -161,21 +161,33 @@ function useBLE(): BluetoothLowEnergyApi {
   const onPhUpdate = (
     error: BleError | null,
     characteristic: Characteristic | null
-  )=>{  
+  ) => {  
     if (error) {
       console.log(error);
       return -1;
     } else if (!characteristic?.value) {
-      console.log("No Data was recieved");
+      console.log("No Data was received");
       return -1;
     }
 
     try {
+      // Convierte el valor base64 a un buffer
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const rawValue = rawData.readFloatLE(0);
-      // Scale pH value appropriately (pH typically ranges from 0-14)
-      const value = rawValue * 100000;
+      
+      // Decodifica el buffer a texto ASCII/UTF-8
+      const stringValue = rawData.toString('utf-8').trim();
+
+      // Convierte el string a float
+      const value = parseFloat(stringValue);
+
+      if (isNaN(value)) {
+        console.log("Parsed value is NaN, received string:", stringValue);
+        return -1;
+      }
+
+      // Aquí ajusta según la escala real que esperas (si es necesario)
       setPh(value);
+
     } catch (e) {
       console.log("Error decoding pH value:", e);
     }
@@ -192,18 +204,21 @@ function useBLE(): BluetoothLowEnergyApi {
       console.log("No Data was received");
       return -1;
     }
-  
+
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const rawValue = rawData.readFloatLE(0);
-      // Scale humidity value appropriately (should be 0-100%)
-      const value = rawValue * 100000;
+      const stringValue = rawData.toString('utf-8').trim();
+      const value = parseFloat(stringValue);
+      if (isNaN(value)) {
+        console.log("Parsed value is NaN, received string:", stringValue);
+        return -1;
+      }
       setHumi(value);
     } catch (e) {
       console.log("Error decoding humidity value:", e);
     }
   };
-  
+
   const onTempUpdate = (
     error: BleError | null,
     characteristic: Characteristic | null
@@ -215,18 +230,21 @@ function useBLE(): BluetoothLowEnergyApi {
       console.log("No Data was received");
       return -1;
     }
-  
+
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const rawValue = rawData.readFloatLE(0);
-      // Scale temperature value (typically in degrees C)
-      const value = rawValue * 100000;
+      const stringValue = rawData.toString('utf-8').trim();
+      const value = parseFloat(stringValue);
+      if (isNaN(value)) {
+        console.log("Parsed value is NaN, received string:", stringValue);
+        return -1;
+      }
       setTemp(value);
     } catch (e) {
       console.log("Error decoding temperature value:", e);
     }
   };
-  
+
   const onCondUpdate = (
     error: BleError | null,
     characteristic: Characteristic | null
@@ -238,18 +256,21 @@ function useBLE(): BluetoothLowEnergyApi {
       console.log("No Data was received");
       return -1;
     }
-  
+
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const rawValue = rawData.readFloatLE(0);
-      // Scale conductivity value
-      const value = rawValue * 100000;
+      const stringValue = rawData.toString('utf-8').trim();
+      const value = parseFloat(stringValue);
+      if (isNaN(value)) {
+        console.log("Parsed value is NaN, received string:", stringValue);
+        return -1;  
+      }
       setCond(value);
     } catch (e) {
       console.log("Error decoding conductivity value:", e);
     }
   };
-  
+
   const onNitroUpdate = (
     error: BleError | null,
     characteristic: Characteristic | null
@@ -261,18 +282,21 @@ function useBLE(): BluetoothLowEnergyApi {
       console.log("No Data was received");
       return -1;
     }
-  
+
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const rawValue = rawData.readFloatLE(0);
-      // Scale nitrogen value
-      const value = rawValue * 100000;
+      const stringValue = rawData.toString('utf-8').trim();
+      const value = parseFloat(stringValue);
+      if (isNaN(value)) {
+        console.log("Parsed value is NaN, received string:", stringValue);
+        return -1;
+      }
       setNitro(value);
     } catch (e) {
       console.log("Error decoding nitrogen value:", e);
     }
   };
-  
+
   const onPhosUpdate = (
     error: BleError | null,
     characteristic: Characteristic | null
@@ -284,18 +308,21 @@ function useBLE(): BluetoothLowEnergyApi {
       console.log("No Data was received");
       return -1;
     }
-  
+
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const rawValue = rawData.readFloatLE(0);
-      // Scale phosphorus value
-      const value = rawValue * 100000;
+      const stringValue = rawData.toString('utf-8').trim();
+      const value = parseFloat(stringValue);
+      if (isNaN(value)) {
+        console.log("Parsed value is NaN, received string:", stringValue);
+        return -1;
+      }
       setPhos(value);
     } catch (e) {
       console.log("Error decoding phosphorus value:", e);
     }
   };
-  
+
   const onPotaUpdate = (
     error: BleError | null,
     characteristic: Characteristic | null
@@ -307,12 +334,15 @@ function useBLE(): BluetoothLowEnergyApi {
       console.log("No Data was received");
       return -1;
     }
-  
+
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const rawValue = rawData.readFloatLE(0);
-      // Scale potassium value
-      const value = rawValue * 100000;
+      const stringValue = rawData.toString('utf-8').trim();
+      const value = parseFloat(stringValue);
+      if (isNaN(value)) {
+        console.log("Parsed value is NaN, received string:", stringValue);
+        return -1;
+      }
       setPota(value);
     } catch (e) {
       console.log("Error decoding potassium value:", e);

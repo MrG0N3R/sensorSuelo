@@ -4,8 +4,8 @@ import useBLE from '@/bluetooth/ble';
 import { Item } from '@/components/Item';
 import { ThemedText } from '@/components/ThemedText';
 import colorScheme from '@/constants/colorScheme';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DeviceModal from '../../components/conn_modal';
 
@@ -28,7 +28,6 @@ export default function HomeScreen() {
   } = useBLE();
 
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [isSensorFound, setIsSensorFound] = useState<boolean>(false);
   const hideModal = () => {
     setIsModalVisible(false);
   };
@@ -40,15 +39,6 @@ export default function HomeScreen() {
       setIsModalVisible(true);
     }
   }
-
-  // Monitor devices array for SensorTierra
-  useEffect(() => {
-    const sensorDevice = allDevices.find(device => 
-        device.name === "SensorTierra" || device.localName === "SensorTierra"
-    );
-    
-    setIsSensorFound(!!sensorDevice);
-}, [allDevices]);
 
   return (
     <SafeAreaProvider>
@@ -90,47 +80,16 @@ export default function HomeScreen() {
         visible={isModalVisible}
         connectToPeripheral={connectToDevice}
         devices={allDevices}
-        isScanning={!isSensorFound} // Stop scanning indicator when sensor is found
       />
 
       <TouchableOpacity 
-        onPress={scan}
-        style={{
-          width:'25%', 
-          height:'10%', 
-          backgroundColor: connectedDevice 
-                            ? colorScheme.accent 
-                            : isSensorFound ? '#4CAF50' : colorScheme.button,
-          borderRadius:20, 
-          borderColor:colorScheme.blackbars, 
-          borderWidth:2, 
-          flexDirection:'row',
-          alignItems:'center', 
-          justifyContent:'center', 
-          position:'absolute', 
-          bottom:25, 
-          right:10
+        onPress={()=>{ 
+          scan();
+          
+          
         }}
-      >
-            {connectedDevice ? (
-                        <MaterialIcons
-                            size={30}
-                            name="bluetooth-connected"
-                            color={colorScheme.tint}
-                        />
-                    ) : isSensorFound ? (
-                        <MaterialIcons
-                            size={30}
-                            name="sensors"
-                            color={colorScheme.tint}
-                        />
-                    ) : (
-                        <MaterialIcons
-                            size={30}
-                            name="bluetooth"
-                            color={colorScheme.tint}
-                        />
-                    )}
+      style={{width:'25%', height:'10%', backgroundColor:colorScheme.button, borderRadius:20, borderColor:colorScheme.blackbars, borderWidth:2, flexDirection:'row',alignItems:'center', justifyContent:'center', position:'absolute', bottom:25, right:10}}>
+            <FontAwesome size={30} name='bluetooth' color={colorScheme.tint}/>
             <ThemedText type='defaultSemiBold' lightColor={colorScheme.tint} darkColor={colorScheme.tint}>Conectar</ThemedText>
       </TouchableOpacity>
 
