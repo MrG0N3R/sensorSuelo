@@ -172,7 +172,9 @@ function useBLE(): BluetoothLowEnergyApi {
 
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const value = rawData.readFloatLE(0);
+      const rawValue = rawData.readFloatLE(0);
+      // Scale pH value appropriately (pH typically ranges from 0-14)
+      const value = rawValue * 100000;
       setPh(value);
     } catch (e) {
       console.log("Error decoding pH value:", e);
@@ -193,7 +195,9 @@ function useBLE(): BluetoothLowEnergyApi {
   
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const value = rawData.readFloatLE(0);
+      const rawValue = rawData.readFloatLE(0);
+      // Scale humidity value appropriately (should be 0-100%)
+      const value = rawValue * 100000;
       setHumi(value);
     } catch (e) {
       console.log("Error decoding humidity value:", e);
@@ -214,7 +218,9 @@ function useBLE(): BluetoothLowEnergyApi {
   
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const value = rawData.readFloatLE(0);
+      const rawValue = rawData.readFloatLE(0);
+      // Scale temperature value (typically in degrees C)
+      const value = rawValue * 100000;
       setTemp(value);
     } catch (e) {
       console.log("Error decoding temperature value:", e);
@@ -235,7 +241,9 @@ function useBLE(): BluetoothLowEnergyApi {
   
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const value = rawData.readFloatLE(0);
+      const rawValue = rawData.readFloatLE(0);
+      // Scale conductivity value
+      const value = rawValue * 100000;
       setCond(value);
     } catch (e) {
       console.log("Error decoding conductivity value:", e);
@@ -256,7 +264,9 @@ function useBLE(): BluetoothLowEnergyApi {
   
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const value = rawData.readFloatLE(0);
+      const rawValue = rawData.readFloatLE(0);
+      // Scale nitrogen value
+      const value = rawValue * 100000;
       setNitro(value);
     } catch (e) {
       console.log("Error decoding nitrogen value:", e);
@@ -277,7 +287,9 @@ function useBLE(): BluetoothLowEnergyApi {
   
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const value = rawData.readFloatLE(0);
+      const rawValue = rawData.readFloatLE(0);
+      // Scale phosphorus value
+      const value = rawValue * 100000;
       setPhos(value);
     } catch (e) {
       console.log("Error decoding phosphorus value:", e);
@@ -298,7 +310,9 @@ function useBLE(): BluetoothLowEnergyApi {
   
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
-      const value = rawData.readFloatLE(0);
+      const rawValue = rawData.readFloatLE(0);
+      // Scale potassium value
+      const value = rawValue * 100000;
       setPota(value);
     } catch (e) {
       console.log("Error decoding potassium value:", e);
