@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import { useMemo, useState } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
 import {
@@ -169,9 +170,13 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
 
-    const rawData = Buffer.from(characteristic.value, 'base64');
-    const value = rawData.readFloatLE(0);
-    setPh(value);
+    try {
+      const rawData = Buffer.from(characteristic.value, 'base64');
+      const value = rawData.readFloatLE(0);
+      setPh(value);
+    } catch (e) {
+      console.log("Error decoding pH value:", e);
+    }
   }
 
   const onHumiUpdate = (
@@ -186,9 +191,13 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const rawData = Buffer.from(characteristic.value, 'base64');
-    const value = rawData.readFloatLE(0);
-    setHumi(value);
+    try {
+      const rawData = Buffer.from(characteristic.value, 'base64');
+      const value = rawData.readFloatLE(0);
+      setHumi(value);
+    } catch (e) {
+      console.log("Error decoding humidity value:", e);
+    }
   };
   
   const onTempUpdate = (
@@ -203,9 +212,13 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const rawData = Buffer.from(characteristic.value, 'base64');
-    const value = rawData.readFloatLE(0);
-    setTemp(value);
+    try {
+      const rawData = Buffer.from(characteristic.value, 'base64');
+      const value = rawData.readFloatLE(0);
+      setTemp(value);
+    } catch (e) {
+      console.log("Error decoding temperature value:", e);
+    }
   };
   
   const onCondUpdate = (
@@ -220,9 +233,13 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const rawData = Buffer.from(characteristic.value, 'base64');
-    const value = rawData.readFloatLE(0);
-    setCond(value);
+    try {
+      const rawData = Buffer.from(characteristic.value, 'base64');
+      const value = rawData.readFloatLE(0);
+      setCond(value);
+    } catch (e) {
+      console.log("Error decoding conductivity value:", e);
+    }
   };
   
   const onNitroUpdate = (
@@ -237,9 +254,13 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const rawData = Buffer.from(characteristic.value, 'base64');
-    const value = rawData.readFloatLE(0);
-    setNitro(value);
+    try {
+      const rawData = Buffer.from(characteristic.value, 'base64');
+      const value = rawData.readFloatLE(0);
+      setNitro(value);
+    } catch (e) {
+      console.log("Error decoding nitrogen value:", e);
+    }
   };
   
   const onPhosUpdate = (
@@ -254,9 +275,13 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const rawData = Buffer.from(characteristic.value, 'base64');
-    const value = rawData.readFloatLE(0);
-    setPhos(value);
+    try {
+      const rawData = Buffer.from(characteristic.value, 'base64');
+      const value = rawData.readFloatLE(0);
+      setPhos(value);
+    } catch (e) {
+      console.log("Error decoding phosphorus value:", e);
+    }
   };
   
   const onPotaUpdate = (
@@ -271,9 +296,13 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const rawData = Buffer.from(characteristic.value, 'base64');
-    const value = rawData.readFloatLE(0);
-    setPota(value);
+    try {
+      const rawData = Buffer.from(characteristic.value, 'base64');
+      const value = rawData.readFloatLE(0);
+      setPota(value);
+    } catch (e) {
+      console.log("Error decoding potassium value:", e);
+    }
   };
   
 
