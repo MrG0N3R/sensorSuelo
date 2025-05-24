@@ -1,5 +1,3 @@
-
-
 import { useMemo, useState } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
 import {
@@ -171,8 +169,9 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
 
-    const value = Number.parseFloat(characteristic.value);
-    setPh(value)
+    const rawData = Buffer.from(characteristic.value, 'base64');
+    const value = rawData.readFloatLE(0);
+    setPh(value);
   }
 
   const onHumiUpdate = (
@@ -187,7 +186,8 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const value = Number.parseFloat(characteristic.value);
+    const rawData = Buffer.from(characteristic.value, 'base64');
+    const value = rawData.readFloatLE(0);
     setHumi(value);
   };
   
@@ -203,7 +203,8 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const value = Number.parseFloat(characteristic.value);
+    const rawData = Buffer.from(characteristic.value, 'base64');
+    const value = rawData.readFloatLE(0);
     setTemp(value);
   };
   
@@ -219,10 +220,10 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const value = Number.parseFloat(characteristic.value);
+    const rawData = Buffer.from(characteristic.value, 'base64');
+    const value = rawData.readFloatLE(0);
     setCond(value);
   };
-  
   
   const onNitroUpdate = (
     error: BleError | null,
@@ -236,7 +237,8 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const value = Number.parseFloat(characteristic.value);
+    const rawData = Buffer.from(characteristic.value, 'base64');
+    const value = rawData.readFloatLE(0);
     setNitro(value);
   };
   
@@ -252,7 +254,8 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const value = Number.parseFloat(characteristic.value);
+    const rawData = Buffer.from(characteristic.value, 'base64');
+    const value = rawData.readFloatLE(0);
     setPhos(value);
   };
   
@@ -268,7 +271,8 @@ function useBLE(): BluetoothLowEnergyApi {
       return -1;
     }
   
-    const value = Number.parseFloat(characteristic.value);
+    const rawData = Buffer.from(characteristic.value, 'base64');
+    const value = rawData.readFloatLE(0);
     setPota(value);
   };
   
