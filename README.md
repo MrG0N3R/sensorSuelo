@@ -25,6 +25,47 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## Compilar APK
+
+```bash
+npm install -g eas-cli && eas login
+```
+Then you have to put credentials of expo
+
+Then use the follow command to build android apk
+
+
+If the command show you this message
+
+```bash
+$ eas build --platform android --profile development
+You don't have the required permissions to perform this operation.
+
+This can sometimes happen if you are logged in as incorrect user.
+Run eas whoami to check the username you are logged in as.
+Run eas login to change the account.
+
+Original error message: Entity not authorized: AppEntity[22975b8b-d082-4339-b502-9df34f3357c0] (viewer = RegularUserViewerContext[bb1fbed5-4f49-4653-bc17-107b9b5be5b6], action = READ, ruleIndex = -1)
+Request ID: 91a0da1e-699f-4e00-94a3-0785fe22875a
+    Error: GraphQL request failed.
+```
+
+Remove this from app.json
+
+```jsom
+"extra": {
+      "router": {},
+      "eas": {
+        "projectId": "22975b8b-d082-4339-b502-9df34f3357c0"
+      }
+    }
+```
+
+the use 
+```bash
+npx expo start
+```
+
 ## Get a fresh project
 
 When you're ready, run:
