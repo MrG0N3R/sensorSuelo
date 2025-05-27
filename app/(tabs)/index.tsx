@@ -1,12 +1,12 @@
 import {
-  Image,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 
 import useBLE from "@/bluetooth/ble";
@@ -63,26 +63,18 @@ export default function HomeScreen() {
 
     return (
         <SafeAreaProvider>
-            <SafeAreaView style={styles.main}>
+            <StatusBar barStyle="light-content" />
+            <View style={styles.main}>
                 <View style={styles.top}>
                     <Image
-                        source={require("../../assets/images/react-logo.png")}
-                        resizeMode="stretch"
+                        source={require("../../assets/images/icono.png")}
+                        resizeMode="contain"
                         style={{
-                            width: "15%",
-                            height: "85%",
+                            width: "75%",
+                            height: "170%",
                             alignSelf: "center",
                         }}
                     />
-                    <ThemedText
-                        type="title"
-                        style={{ alignSelf: "center" }}
-                        darkColor={colorScheme.tint}
-                        lightColor={colorScheme.tint}
-                    >
-                        {" "}
-                        Aplicacion de sensado{" "}
-                    </ThemedText>
                 </View>
 
                 <View style={{ height: "13%" }}></View>
@@ -181,7 +173,7 @@ export default function HomeScreen() {
                         Conectar
                     </ThemedText>
                 </TouchableOpacity>
-            </SafeAreaView>
+            </View>
         </SafeAreaProvider>
     );
 }
@@ -189,18 +181,18 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     top: {
         position: "absolute",
-        left: 0,
-        backgroundColor: "#000",
+        left: 0,                
         width: "100%",
         height: "10%",
         alignContent: "center",
-        justifyContent: "flex-start",
+        justifyContent: "center",
         flexDirection: "row",
     },
     main: {
         width: "100%",
         height: "100%",
         backgroundColor: colorScheme.background,
+        paddingTop: StatusBar.currentHeight || 0,  // Add padding for status bar
     },
     container: {
         height: "10%",
