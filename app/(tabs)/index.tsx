@@ -15,27 +15,10 @@ import { Item } from "@/components/Item";
 import { ItemPaquete } from "@/components/ItemPaquete";
 import colorScheme from "@/constants/colorScheme";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import DeviceModal from "../../components/conn_modal";
-
-// Simple storage utility
-class SimpleStorage {
-    private static data: { [key: string]: string } = {};
-
-    static setItem(key: string, value: string): Promise<void> {
-        return new Promise((resolve) => {
-            this.data[key] = value;
-            resolve();
-        });
-    }
-
-    static getItem(key: string): Promise<string | null> {
-        return new Promise((resolve) => {
-            resolve(this.data[key] || null);
-        });
-    }
-}
 
 // Define type for saved packages
 type SavedPackage = {
@@ -121,8 +104,8 @@ export default function HomeScreen() {
         setSavedPackages(updatedPackages);
 
         try {
-            // Save to SimpleStorage
-            await SimpleStorage.setItem(
+            // Save to SecureStore
+            await SecureStore.setItemAsync(
                 "savedPackages",
                 JSON.stringify(updatedPackages)
             );
@@ -140,7 +123,7 @@ export default function HomeScreen() {
 
     const loadSavedPackages = async () => {
         try {
-            const saved = await SimpleStorage.getItem("savedPackages");
+            const saved = await SecureStore.getItemAsync("savedPackages");
             if (saved) {
                 const packages: SavedPackage[] = JSON.parse(saved);
                 setSavedPackages(packages);
@@ -165,7 +148,7 @@ export default function HomeScreen() {
                                 (pkg) => pkg.id !== packageId
                             );
                             setSavedPackages(updatedPackages);
-                            await SimpleStorage.setItem(
+                            await SecureStore.setItemAsync(
                                 "savedPackages",
                                 JSON.stringify(updatedPackages)
                             );
@@ -180,6 +163,18 @@ export default function HomeScreen() {
                 },
             ]
         );
+    };
+
+    const uploadPackagesToServer = () => {
+        console.log('Uploading packages to server:');
+        console.log(JSON.stringify(savedPackages, null, 2));
+        
+        if (savedPackages.length === 0) {
+            Alert.alert('Información', 'No hay paquetes guardados para subir');
+            return;
+        }
+        
+        Alert.alert('Éxito', `${savedPackages.length} paquete(s) enviados al servidor (ver consola)`);
     };
 
     const cancelSensing = () => {
@@ -309,6 +304,23 @@ export default function HomeScreen() {
                                     </TouchableOpacity>
                                 </View>
                             </View>
+                        )}
+
+                        {/* Upload button - only show if there are saved packages */}
+                        {savedPackages.length > 0 && (
+                            <TouchableOpacity
+                                style={styles.uploadButton}
+                                onPress={uploadPackagesToServer}
+                            >
+                                <MaterialIcons
+                                    name="cloud-upload"
+                                    size={24}
+                                    color={colorScheme.tint}
+                                />
+                                <Text style={styles.uploadButtonText}>
+                                    Subir {savedPackages.length} paquete(s) al servidor
+                                </Text>
+                            </TouchableOpacity>
                         )}
 
                         {savedPackages.map((pkg) => (
@@ -449,6 +461,24 @@ const styles = StyleSheet.create({
         color: colorScheme.tint,
         fontSize: 16,
         fontWeight: "bold",
+        marginLeft: 8,
+    },
+    uploadButton: {
+        backgroundColor: colorScheme.accent,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+        marginHorizontal: 15,
+        marginTop: 10,
+        marginBottom: 10,
+    },
+    uploadButtonText: {
+        color: colorScheme.tint,
+        fontSize: 16,
+        fontWeight: 'bold',
         marginLeft: 8,
     },
 });
