@@ -1,4 +1,5 @@
 import {
+    Alert,
     Image,
     ScrollView,
     StatusBar,
@@ -6,17 +7,49 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 
 import useBLE from "@/bluetooth/ble";
 import { Item } from "@/components/Item";
-import { ThemedText } from "@/components/ThemedText";
+import { ItemPaquete } from "@/components/ItemPaquete";
 import colorScheme from "@/constants/colorScheme";
-import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import { useState } from "react";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import DeviceModal from "../../components/conn_modal";
+
+// Simple storage utility
+class SimpleStorage {
+    private static data: { [key: string]: string } = {};
+
+    static setItem(key: string, value: string): Promise<void> {
+        return new Promise((resolve) => {
+            this.data[key] = value;
+            resolve();
+        });
+    }
+
+    static getItem(key: string): Promise<string | null> {
+        return new Promise((resolve) => {
+            resolve(this.data[key] || null);
+        });
+    }
+}
+
+// Define type for saved packages
+type SavedPackage = {
+    id: string;
+    name: string;
+    date: string;
+    humi: number;
+    temp: number;
+    cond: number;
+    ph: number;
+    nitro: number;
+    phos: number;
+    pota: number;
+};
 
 export default function HomeScreen() {
     const {
@@ -36,6 +69,15 @@ export default function HomeScreen() {
     } = useBLE();
 
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+    const [isSensing, setIsSensing] = useState<boolean>(false);
+    const [packageName, setPackageName] = useState<string>("");
+    const [savedPackages, setSavedPackages] = useState<SavedPackage[]>([]);
+
+    // Load saved packages on component mount
+    useEffect(() => {
+        loadSavedPackages();
+    }, []);
+
     const hideModal = () => {
         setIsModalVisible(false);
     };
@@ -48,17 +90,119 @@ export default function HomeScreen() {
         }
     };
 
+    const startSensing = () => {
+        if (!packageName.trim()) {
+            Alert.alert("Error", "Por favor ingresa un nombre para el paquete");
+            return;
+        }
+        setIsSensing(true);
+    };
+
+    const saveCurrentSensing = async () => {
+        if (!packageName.trim()) {
+            Alert.alert("Error", "Por favor ingresa un nombre para el paquete");
+            return;
+        }
+
+        const newPackage: SavedPackage = {
+            id: Date.now().toString(),
+            name: packageName,
+            date: getCurrentFormattedDateTime(),
+            humi,
+            temp,
+            cond,
+            ph,
+            nitro,
+            phos,
+            pota,
+        };
+
+        const updatedPackages = [newPackage, ...savedPackages];
+        setSavedPackages(updatedPackages);
+
+        try {
+            // Save to SimpleStorage
+            await SimpleStorage.setItem(
+                "savedPackages",
+                JSON.stringify(updatedPackages)
+            );
+
+            // Reset sensing state
+            setIsSensing(false);
+            setPackageName("");
+
+            Alert.alert("Éxito", "Paquete guardado correctamente");
+        } catch (error) {
+            console.error("Error saving package:", error);
+            Alert.alert("Error", "No se pudo guardar el paquete");
+        }
+    };
+
+    const loadSavedPackages = async () => {
+        try {
+            const saved = await SimpleStorage.getItem("savedPackages");
+            if (saved) {
+                const packages: SavedPackage[] = JSON.parse(saved);
+                setSavedPackages(packages);
+            }
+        } catch (error) {
+            console.error("Error loading saved packages:", error);
+        }
+    };
+
+    const deletePackage = async (packageId: string) => {
+        Alert.alert(
+            "Confirmar eliminación",
+            "¿Estás seguro de que quieres eliminar este paquete?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                {
+                    text: "Eliminar",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            const updatedPackages = savedPackages.filter(
+                                (pkg) => pkg.id !== packageId
+                            );
+                            setSavedPackages(updatedPackages);
+                            await SimpleStorage.setItem(
+                                "savedPackages",
+                                JSON.stringify(updatedPackages)
+                            );
+                        } catch (error) {
+                            console.error("Error deleting package:", error);
+                            Alert.alert(
+                                "Error",
+                                "No se pudo eliminar el paquete"
+                            );
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    const cancelSensing = () => {
+        setIsSensing(false);
+        setPackageName("");
+    };
+
     // Function to format the current date and time
     const getCurrentFormattedDateTime = () => {
         const now = new Date();
-        
+
         // Format: DD/MM/YYYY HH:MM:SS
-        return `${now.getDate().toString().padStart(2, '0')}/${
-            (now.getMonth() + 1).toString().padStart(2, '0')}/${
-            now.getFullYear()} ${
-            now.getHours().toString().padStart(2, '0')}:${
-            now.getMinutes().toString().padStart(2, '0')}:${
-            now.getSeconds().toString().padStart(2, '0')}`;
+        return `${now.getDate().toString().padStart(2, "0")}/${(
+            now.getMonth() + 1
+        )
+            .toString()
+            .padStart(2, "0")}/${now.getFullYear()} ${now
+            .getHours()
+            .toString()
+            .padStart(2, "0")}:${now
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}:${now.getSeconds().toString().padStart(2, "0")}`;
     };
 
     return (
@@ -86,6 +230,8 @@ export default function HomeScreen() {
                             placeholderTextColor={
                                 colorScheme.placeholderTextColor
                             }
+                            value={packageName}
+                            onChangeText={setPackageName}
                         />
                         <TouchableOpacity
                             style={{
@@ -98,6 +244,7 @@ export default function HomeScreen() {
                                 alignItems: "center",
                                 justifyContent: "center",
                             }}
+                            onPress={startSensing}
                         >
                             <MaterialIcons
                                 size={30}
@@ -119,17 +266,67 @@ export default function HomeScreen() {
                     <View style={{ height: "3%" }} />
 
                     <ScrollView>
-                        <Item
-                            title="Actual"
-                            ph={ph}
-                            cond={cond}
-                            date={getCurrentFormattedDateTime()}
-                            humi={humi}
-                            nitro={nitro}
-                            phos={phos}
-                            pota={pota}
-                            temp={temp}
-                        />
+                        {isSensing && (
+                            <View>
+                                <Item
+                                    title={`Actual - ${packageName}`}
+                                    ph={ph}
+                                    cond={cond}
+                                    date={getCurrentFormattedDateTime()}
+                                    humi={humi}
+                                    nitro={nitro}
+                                    phos={phos}
+                                    pota={pota}
+                                    temp={temp}
+                                />
+                                <View style={styles.buttonContainer}>
+                                    <TouchableOpacity
+                                        style={styles.saveButton}
+                                        onPress={saveCurrentSensing}
+                                    >
+                                        <MaterialIcons
+                                            name="save"
+                                            size={24}
+                                            color={colorScheme.tint}
+                                        />
+                                        <Text style={styles.saveButtonText}>
+                                            Guardar
+                                        </Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.cancelButton}
+                                        onPress={cancelSensing}
+                                    >
+                                        <MaterialIcons
+                                            name="cancel"
+                                            size={24}
+                                            color={colorScheme.tint}
+                                        />
+                                        <Text style={styles.cancelButtonText}>
+                                            Cancelar
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        )}
+
+                        {savedPackages.map((pkg) => (
+                            <ItemPaquete
+                                key={pkg.id}
+                                title={pkg.name}
+                                date={pkg.date}
+                                humi={pkg.humi}
+                                temp={pkg.temp}
+                                cond={pkg.cond}
+                                ph={pkg.ph}
+                                nitro={pkg.nitro}
+                                phos={pkg.phos}
+                                pota={pkg.pota}
+                                onDelete={() => deletePackage(pkg.id)}
+                            />
+                        ))}
+
                         <View style={{ height: 120 }} />
                     </ScrollView>
                 </View>
@@ -142,9 +339,7 @@ export default function HomeScreen() {
                 />
 
                 <TouchableOpacity
-                    onPress={() => {
-                        scan();
-                    }}
+                    onPress={scan}
                     style={{
                         width: "25%",
                         height: "10%",
@@ -160,18 +355,11 @@ export default function HomeScreen() {
                         right: 10,
                     }}
                 >
-                    <FontAwesome
+                    <MaterialIcons
                         size={30}
-                        name="bluetooth"
+                        name="bluetooth-searching"
                         color={colorScheme.tint}
                     />
-                    <ThemedText
-                        type="defaultSemiBold"
-                        lightColor={colorScheme.tint}
-                        darkColor={colorScheme.tint}
-                    >
-                        Conectar
-                    </ThemedText>
                 </TouchableOpacity>
             </View>
         </SafeAreaProvider>
@@ -181,7 +369,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     top: {
         position: "absolute",
-        left: 0,                
+        left: 0,
         width: "100%",
         height: "10%",
         alignContent: "center",
@@ -192,7 +380,7 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "100%",
         backgroundColor: colorScheme.background,
-        paddingTop: StatusBar.currentHeight || 0,  // Add padding for status bar
+        paddingTop: StatusBar.currentHeight || 0, // Add padding for status bar
     },
     container: {
         height: "10%",
@@ -214,6 +402,8 @@ const styles = StyleSheet.create({
         outline: "none",
         fontSize: 20,
         color: colorScheme.tint,
+        paddingHorizontal: 15,
+        paddingVertical: 10,
     },
     reactLogo: {
         height: 178,
@@ -221,5 +411,44 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         position: "absolute",
+    },
+    buttonContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginHorizontal: 15,
+        marginTop: 10,
+        marginBottom: 10,
+    },
+    saveButton: {
+        backgroundColor: colorScheme.button,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+        width: "48%",
+    },
+    saveButtonText: {
+        color: colorScheme.tint,
+        fontSize: 16,
+        fontWeight: "bold",
+        marginLeft: 8,
+    },
+    cancelButton: {
+        backgroundColor: colorScheme.secondaryButton || "#FF6B6B",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+        width: "48%",
+    },
+    cancelButtonText: {
+        color: colorScheme.tint,
+        fontSize: 16,
+        fontWeight: "bold",
+        marginLeft: 8,
     },
 });
