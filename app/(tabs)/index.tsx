@@ -11,28 +11,16 @@ import {
 } from "react-native";
 
 import useBLE from "@/bluetooth/ble";
-import { Item } from "@/components/Item";
-import { ItemPaquete } from "@/components/ItemPaquete";
+import { PackageCard, PackageData, SensorData } from "@/components/PackageCard";
 import colorScheme from "@/constants/colorScheme";
 import { MaterialIcons } from "@expo/vector-icons";
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import DeviceModal from "../../components/conn_modal";
 
-// Define type for saved packages
-type SavedPackage = {
-    id: string;
-    name: string;
-    date: string;
-    humi: number;
-    temp: number;
-    cond: number;
-    ph: number;
-    nitro: number;
-    phos: number;
-    pota: number;
-};
+// Update type definition
+type SavedPackages = PackageData[];
 
 export default function HomeScreen() {
     const {
@@ -54,7 +42,11 @@ export default function HomeScreen() {
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [isSensing, setIsSensing] = useState<boolean>(false);
     const [packageName, setPackageName] = useState<string>("");
-    const [savedPackages, setSavedPackages] = useState<SavedPackage[]>([]);
+    const [sensorName, setSensorName] = useState<string>("");
+    const [savedPackages, setSavedPackages] = useState<SavedPackages>([]);
+    const [sensingPackageId, setSensingPackageId] = useState<number | null>(
+        null
+    );
 
     // Load saved packages on component mount
     useEffect(() => {
@@ -73,23 +65,57 @@ export default function HomeScreen() {
         }
     };
 
-    const startSensing = () => {
+    const startNewPackage = () => {
         if (!packageName.trim()) {
             Alert.alert("Error", "Por favor ingresa un nombre para el paquete");
             return;
         }
+
+        const newPackage: PackageData = {
+            packageName: packageName,
+            packageId: Date.now(),
+            location: {
+                latitude: 21.146633, // Default location, could be from GPS
+                longitude: -101.711319,
+                date: new Date().toISOString(),
+            },
+            sensos: [],
+        };
+
+        const updatedPackages = [newPackage, ...savedPackages];
+        setSavedPackages(updatedPackages);
+        savePackagesToStorage(updatedPackages);
+        setPackageName("");
+
+        Alert.alert("Éxito", "Nuevo paquete creado correctamente");
+    };
+
+    const addSensorToPackage = (packageId: number) => {
+        const packageIndex = savedPackages.findIndex(
+            (pkg) => pkg.packageId === packageId
+        );
+        if (packageIndex === -1) return;
+
+        const sensorCount = savedPackages[packageIndex].sensos.length + 1;
+        const defaultName = `Sensor_${sensorCount.toString().padStart(3, "0")}`;
+
+        setSensorName(defaultName);
+        setSensingPackageId(packageId);
         setIsSensing(true);
     };
 
-    const saveCurrentSensing = async () => {
-        if (!packageName.trim()) {
-            Alert.alert("Error", "Por favor ingresa un nombre para el paquete");
+    const saveSensorToPackage = async (
+        packageId: number,
+        sensorName: string
+    ) => {
+        if (!sensorName.trim()) {
+            Alert.alert("Error", "Por favor ingresa un nombre para el sensor");
             return;
         }
 
-        const newPackage: SavedPackage = {
+        const newSensor: SensorData = {
             id: Date.now().toString(),
-            name: packageName,
+            name: sensorName,
             date: getCurrentFormattedDateTime(),
             humi,
             temp,
@@ -100,24 +126,35 @@ export default function HomeScreen() {
             pota,
         };
 
-        const updatedPackages = [newPackage, ...savedPackages];
-        setSavedPackages(updatedPackages);
+        const updatedPackages = savedPackages.map((pkg) => {
+            if (pkg.packageId === packageId) {
+                return {
+                    ...pkg,
+                    sensos: [newSensor, ...pkg.sensos],
+                };
+            }
+            return pkg;
+        });
 
+        setSavedPackages(updatedPackages);
+        await savePackagesToStorage(updatedPackages);
+
+        // Reset sensing state
+        setIsSensing(false);
+        setSensorName("");
+        setSensingPackageId(null);
+
+        Alert.alert("Éxito", "Sensor guardado correctamente");
+    };
+
+    const savePackagesToStorage = async (packages: SavedPackages) => {
         try {
-            // Save to SecureStore
             await SecureStore.setItemAsync(
                 "savedPackages",
-                JSON.stringify(updatedPackages)
+                JSON.stringify(packages)
             );
-
-            // Reset sensing state
-            setIsSensing(false);
-            setPackageName("");
-
-            Alert.alert("Éxito", "Paquete guardado correctamente");
         } catch (error) {
-            console.error("Error saving package:", error);
-            Alert.alert("Error", "No se pudo guardar el paquete");
+            console.error("Error saving packages:", error);
         }
     };
 
@@ -125,7 +162,7 @@ export default function HomeScreen() {
         try {
             const saved = await SecureStore.getItemAsync("savedPackages");
             if (saved) {
-                const packages: SavedPackage[] = JSON.parse(saved);
+                const packages: SavedPackages = JSON.parse(saved);
                 setSavedPackages(packages);
             }
         } catch (error) {
@@ -133,53 +170,53 @@ export default function HomeScreen() {
         }
     };
 
-    const deletePackage = async (packageId: string) => {
-        Alert.alert(
-            "Confirmar eliminación",
-            "¿Estás seguro de que quieres eliminar este paquete?",
-            [
-                { text: "Cancelar", style: "cancel" },
-                {
-                    text: "Eliminar",
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            const updatedPackages = savedPackages.filter(
-                                (pkg) => pkg.id !== packageId
-                            );
-                            setSavedPackages(updatedPackages);
-                            await SecureStore.setItemAsync(
-                                "savedPackages",
-                                JSON.stringify(updatedPackages)
-                            );
-                        } catch (error) {
-                            console.error("Error deleting package:", error);
-                            Alert.alert(
-                                "Error",
-                                "No se pudo eliminar el paquete"
-                            );
-                        }
-                    },
-                },
-            ]
+    const deletePackage = async (packageId: number) => {
+        const updatedPackages = savedPackages.filter(
+            (pkg) => pkg.packageId !== packageId
         );
+        setSavedPackages(updatedPackages);
+        await savePackagesToStorage(updatedPackages);
+    };
+
+    const deleteSensor = async (packageId: number, sensorId: string) => {
+        const updatedPackages = savedPackages.map((pkg) => {
+            if (pkg.packageId === packageId) {
+                return {
+                    ...pkg,
+                    sensos: pkg.sensos.filter(
+                        (sensor) => sensor.id !== sensorId
+                    ),
+                };
+            }
+            return pkg;
+        });
+        setSavedPackages(updatedPackages);
+        await savePackagesToStorage(updatedPackages);
     };
 
     const uploadPackagesToServer = () => {
-        console.log('Uploading packages to server:');
+        console.log("Uploading packages to server:");
         console.log(JSON.stringify(savedPackages, null, 2));
-        
+
         if (savedPackages.length === 0) {
-            Alert.alert('Información', 'No hay paquetes guardados para subir');
+            Alert.alert("Información", "No hay paquetes guardados para subir");
             return;
         }
-        
-        Alert.alert('Éxito', `${savedPackages.length} paquete(s) enviados al servidor (ver consola)`);
+
+        const totalSensors = savedPackages.reduce(
+            (total, pkg) => total + pkg.sensos.length,
+            0
+        );
+        Alert.alert(
+            "Éxito",
+            `${savedPackages.length} paquete(s) con ${totalSensors} sensores enviados al servidor (ver consola)`
+        );
     };
 
     const cancelSensing = () => {
         setIsSensing(false);
-        setPackageName("");
+        setSensorName("");
+        setSensingPackageId(null);
     };
 
     // Function to format the current date and time
@@ -239,7 +276,7 @@ export default function HomeScreen() {
                                 alignItems: "center",
                                 justifyContent: "center",
                             }}
-                            onPress={startSensing}
+                            onPress={startNewPackage}
                         >
                             <MaterialIcons
                                 size={30}
@@ -261,52 +298,7 @@ export default function HomeScreen() {
                     <View style={{ height: "3%" }} />
 
                     <ScrollView>
-                        {isSensing && (
-                            <View>
-                                <Item
-                                    title={`Actual - ${packageName}`}
-                                    ph={ph}
-                                    cond={cond}
-                                    date={getCurrentFormattedDateTime()}
-                                    humi={humi}
-                                    nitro={nitro}
-                                    phos={phos}
-                                    pota={pota}
-                                    temp={temp}
-                                />
-                                <View style={styles.buttonContainer}>
-                                    <TouchableOpacity
-                                        style={styles.saveButton}
-                                        onPress={saveCurrentSensing}
-                                    >
-                                        <MaterialIcons
-                                            name="save"
-                                            size={24}
-                                            color={colorScheme.tint}
-                                        />
-                                        <Text style={styles.saveButtonText}>
-                                            Guardar
-                                        </Text>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
-                                        style={styles.cancelButton}
-                                        onPress={cancelSensing}
-                                    >
-                                        <MaterialIcons
-                                            name="cancel"
-                                            size={24}
-                                            color={colorScheme.tint}
-                                        />
-                                        <Text style={styles.cancelButtonText}>
-                                            Cancelar
-                                        </Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        )}
-
-                        {/* Upload button - only show if there are saved packages */}
+                        {/* Upload button */}
                         {savedPackages.length > 0 && (
                             <TouchableOpacity
                                 style={styles.uploadButton}
@@ -318,24 +310,34 @@ export default function HomeScreen() {
                                     color={colorScheme.tint}
                                 />
                                 <Text style={styles.uploadButtonText}>
-                                    Subir {savedPackages.length} paquete(s) al servidor
+                                    Subir {savedPackages.length} paquete(s) al
+                                    servidor
                                 </Text>
                             </TouchableOpacity>
                         )}
 
-                        {savedPackages.map((pkg) => (
-                            <ItemPaquete
-                                key={pkg.id}
-                                title={pkg.name}
-                                date={pkg.date}
-                                humi={pkg.humi}
-                                temp={pkg.temp}
-                                cond={pkg.cond}
-                                ph={pkg.ph}
-                                nitro={pkg.nitro}
-                                phos={pkg.phos}
-                                pota={pkg.pota}
-                                onDelete={() => deletePackage(pkg.id)}
+                        {/* Package cards */}
+                        {savedPackages.map((packageData, packageIndex) => (
+                            <PackageCard
+                                key={`package-${packageData.packageId}-${packageIndex}`}
+                                packageData={packageData}
+                                onDeletePackage={deletePackage}
+                                onAddSensor={addSensorToPackage}
+                                onDeleteSensor={deleteSensor}
+                                currentSensorData={{
+                                    humi,
+                                    temp,
+                                    cond,
+                                    ph,
+                                    nitro,
+                                    phos,
+                                    pota,
+                                }}
+                                isSensing={isSensing}
+                                sensingPackageId={sensingPackageId || undefined}
+                                sensingName={sensorName}
+                                onSaveSensor={saveSensorToPackage}
+                                onCancelSensing={cancelSensing}
                             />
                         ))}
 
@@ -465,9 +467,9 @@ const styles = StyleSheet.create({
     },
     uploadButton: {
         backgroundColor: colorScheme.accent,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
         paddingVertical: 15,
         paddingHorizontal: 20,
         borderRadius: 10,
@@ -478,7 +480,7 @@ const styles = StyleSheet.create({
     uploadButtonText: {
         color: colorScheme.tint,
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: "bold",
         marginLeft: 8,
     },
 });

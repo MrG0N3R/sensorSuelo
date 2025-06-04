@@ -1,7 +1,7 @@
 import colorScheme from "@/constants/colorScheme";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Collapsible } from "./Collapsible";
 
 export type ItemProps = {
@@ -29,17 +29,40 @@ export function ItemPaquete({
     pota,
     onDelete,
 }: ItemProps) {
+    const handleDelete = () => {
+        if (onDelete) {
+            Alert.alert(
+                "Confirmar eliminación",
+                `¿Estás seguro de que quieres eliminar el sensor "${title}"?`,
+                [
+                    { text: "Cancelar", style: "cancel" },
+                    {
+                        text: "Eliminar",
+                        style: "destructive",
+                        onPress: onDelete,
+                    },
+                ]
+            );
+        }
+    };
+
     return (
         <View style={styles.container}>
             <Collapsible title={title}>
                 <View style={styles.contentContainer}>
-
                     {/* Header with date left and delete button right */}
                     <View style={styles.headerRow}>
                         <Text style={styles.dateText}>{date}</Text>
                         {onDelete && (
-                            <TouchableOpacity onPress={onDelete} style={styles.deleteButton}>
-                                <MaterialIcons name="delete" size={24} color={colorScheme.tint} />
+                            <TouchableOpacity
+                                onPress={handleDelete}
+                                style={styles.deleteButton}
+                            >
+                                <MaterialIcons
+                                    name="delete"
+                                    size={24}
+                                    color={colorScheme.tint}
+                                />
                             </TouchableOpacity>
                         )}
                     </View>
