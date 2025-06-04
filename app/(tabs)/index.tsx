@@ -97,7 +97,7 @@ export default function HomeScreen() {
         if (packageIndex === -1) return;
 
         const sensorCount = savedPackages[packageIndex].sensos.length + 1;
-        const defaultName = `Sensor_${sensorCount.toString().padStart(3, "0")}`;
+        const defaultName = `Senso_${sensorCount.toString().padStart(3, "0")}`;
 
         setSensorName(defaultName);
         setSensingPackageId(packageId);
@@ -209,7 +209,7 @@ export default function HomeScreen() {
         );
         Alert.alert(
             "Éxito",
-            `${savedPackages.length} paquete(s) con ${totalSensors} sensores enviados al servidor (ver consola)`
+            `${savedPackages.length} paquete(s) con ${totalSensors} sensos enviados al servidor (ver consola)`
         );
     };
 

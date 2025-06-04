@@ -82,7 +82,7 @@ export function PackageCard({
     const handleDeletePackage = () => {
         Alert.alert(
             "Confirmar eliminación",
-            `¿Estás seguro de que quieres eliminar el paquete "${packageName}" y todos sus sensores?`,
+            `¿Estás seguro de que quieres eliminar el paquete "${packageName}" y todos sus sensos?`,
             [
                 { text: "Cancelar", style: "cancel" },
                 {
@@ -122,7 +122,7 @@ export function PackageCard({
     return (
         <View style={styles.container}>
             <Collapsible
-                title={`${packageName} (${sensos.length} sensores)`}
+                title={`${packageName} (${sensos.length} sensos)`}
             >
                 <View style={styles.contentContainer}>
                     {/* Package controls */}
@@ -137,7 +137,7 @@ export function PackageCard({
                                 color={colorScheme.tint}
                             />
                             <Text style={styles.buttonText}>
-                                Agregar Sensor
+                                Agregar Senso
                             </Text>
                         </TouchableOpacity>
 
@@ -185,7 +185,7 @@ export function PackageCard({
                     {isCurrentPackageSensing && currentSensorData && (
                         <View style={styles.sensingContainer}>
                             <Item
-                                title={`Sensando: ${sensingName || "Nuevo sensor"}`}
+                                title={sensingName || "Nuevo sensor"}
                                 ph={currentSensorData.ph}
                                 cond={currentSensorData.cond}
                                 date={getCurrentFormattedDateTime()}
@@ -248,8 +248,8 @@ export function PackageCard({
 
                     {sensos.length === 0 && !isCurrentPackageSensing && (
                         <Text style={styles.noSensorsText}>
-                            No hay sensores en este paquete. Agrega uno usando
-                            el botón "Agregar Sensor".
+                            No hay registros en este paquete. Agrega uno usando
+                            el botón "Agregar Senso".
                         </Text>
                     )}
                 </View>

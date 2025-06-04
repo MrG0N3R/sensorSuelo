@@ -48,7 +48,15 @@ export function ItemPaquete({
 
     return (
         <View style={styles.container}>
-            <Collapsible title={title}>
+            <Collapsible
+                title={
+                    <View style={styles.sensorTitleContainer}>
+                        <MaterialIcons name="sensors" size={18} color="#FFFFFF" />
+                        <Text style={styles.sensorTitleText}>{title}</Text>
+                    </View>
+                }
+                headerStyle={styles.sensorHeader}
+            >
                 <View style={styles.contentContainer}>
                     {/* Header with date left and delete button right */}
                     <View style={styles.headerRow}>
@@ -177,9 +185,25 @@ const styles = StyleSheet.create({
     container: {
         borderRadius: 15,
         borderBottomWidth: 5,
-        borderColor: colorScheme.accent,
+        borderColor: "#306137",
         marginTop: 15,
         marginHorizontal: 15,
+        overflow: "hidden",
+    },
+    sensorTitleContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    sensorTitleText: {
+        color: "#FFFFFF",
+        fontSize: 16,
+        fontWeight: "bold",
+        marginLeft: 8,
+    },
+    sensorHeader: {
+        backgroundColor: "#306137",
+        borderTopLeftRadius: 15,
+        borderTopRightRadius: 15,
     },
     contentContainer: {
         flexDirection: "column",
