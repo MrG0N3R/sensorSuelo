@@ -14,6 +14,7 @@ import useBLE from "@/bluetooth/ble";
 import { PackageCard, PackageData, SensorData } from "@/components/PackageCard";
 import colorScheme from "@/constants/colorScheme";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -47,6 +48,7 @@ export default function HomeScreen() {
     const [sensingPackageId, setSensingPackageId] = useState<number | null>(
         null
     );
+    
 
     // Load saved packages on component mount
     useEffect(() => {
@@ -65,18 +67,28 @@ export default function HomeScreen() {
         }
     };
 
-    const startNewPackage = () => {
+    const startNewPackage = async () => {
         if (!packageName.trim()) {
             Alert.alert("Error", "Por favor ingresa un nombre para el paquete");
             return;
         }
 
+        // Solicitar permisos y obtener ubicación
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert("Error", "Permiso de ubicación denegado");
+            return;
+        }
+        let location = await Location.getCurrentPositionAsync({});
+        const latitude = location.coords.latitude;
+        const longitude = location.coords.longitude;
+
         const newPackage: PackageData = {
             packageName: packageName,
             packageId: Date.now(),
             location: {
-                latitude: 21.146633, // Default location, could be from GPS
-                longitude: -101.711319,
+                latitude,
+                longitude,
                 date: new Date().toISOString(),
             },
             sensos: [],
@@ -246,8 +258,10 @@ export default function HomeScreen() {
                         source={require("../../assets/images/icono.png")}
                         resizeMode="contain"
                         style={{
-                            width: "75%",
-                            height: "170%",
+                            width: "60%",
+                            height: undefined,
+                            aspectRatio:1,
+                            marginTop: 50,
                             alignSelf: "center",
                         }}
                     />
@@ -258,7 +272,7 @@ export default function HomeScreen() {
                     <View style={styles.container}>
                         <TextInput
                             style={styles.input}
-                            placeholder="Nombre del Paquete"
+                            placeholder="Nombre del paquete"
                             placeholderTextColor={
                                 colorScheme.placeholderTextColor
                             }
@@ -389,19 +403,19 @@ const styles = StyleSheet.create({
         alignContent: "center",
         justifyContent: "center",
         flexDirection: "row",
+        paddingTop: 90,
     },
     main: {
         width: "100%",
         height: "100%",
         backgroundColor: colorScheme.background,
-        paddingTop: StatusBar.currentHeight || 0, // Add padding for status bar
+        paddingTop: 100,
     },
     container: {
         height: "10%",
         width: "100%",
         flexDirection: "row",
         outline: "none",
-
         alignItems: "center",
     },
     input: {
