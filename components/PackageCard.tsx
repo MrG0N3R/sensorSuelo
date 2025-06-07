@@ -1,7 +1,8 @@
 import colorScheme from "@/constants/colorScheme";
+import { styles } from "@/styles/PackageCardStyles";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { Collapsible } from "./Collapsible";
 import { Item } from "./Item";
 import { ItemPaquete } from "./ItemPaquete";
@@ -121,9 +122,7 @@ export function PackageCard({
 
     return (
         <View style={styles.container}>
-            <Collapsible
-                title={`${packageName} (${sensos.length} sensos)`}
-            >
+            <Collapsible title={`${packageName} (${sensos.length} sensos)`}>
                 <View style={styles.contentContainer}>
                     {/* Package controls */}
                     <View style={styles.packageControls}>
@@ -136,9 +135,7 @@ export function PackageCard({
                                 size={20}
                                 color={colorScheme.tint}
                             />
-                            <Text style={styles.buttonText}>
-                                Agregar Senso
-                            </Text>
+                            <Text style={styles.buttonText}>Agregar Senso</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -257,125 +254,3 @@ export function PackageCard({
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        borderRadius: 15,
-        borderBottomWidth: 5,
-        borderColor: colorScheme.accent,
-        marginTop: 15,
-        marginHorizontal: 15,
-    },
-    contentContainer: {
-        flexDirection: "column",
-        width: "100%",
-        backgroundColor: colorScheme.subBackground,
-        padding: 10,
-        borderBottomLeftRadius: 10,
-        borderBottomRightRadius: 10,
-    },
-    packageControls: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 10,
-    },
-    addSensorButton: {
-        backgroundColor: colorScheme.button,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingVertical: 8,
-        paddingHorizontal: 15,
-        borderRadius: 8,
-        width: "48%",
-    },
-    deletePackageButton: {
-        backgroundColor: "#FF6B6B",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingVertical: 8,
-        paddingHorizontal: 15,
-        borderRadius: 8,
-        width: "48%",
-    },
-    buttonText: {
-        color: colorScheme.tint,
-        fontSize: 14,
-        fontWeight: "bold",
-        marginLeft: 5,
-    },
-    locationInfo: {
-        backgroundColor: colorScheme.accent2,
-        padding: 8,
-        borderRadius: 8,
-        marginBottom: 10,
-    },
-    locationText: {
-        color: colorScheme.tint,
-        fontSize: 12,
-        marginBottom: 2,
-    },
-    sensingContainer: {
-        marginBottom: 10,
-    },
-    buttonContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginHorizontal: 0,
-        marginTop: 10,
-        marginBottom: 10,
-    },
-    saveButton: {
-        backgroundColor: colorScheme.button,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 8,
-        width: "48%",
-    },
-    cancelButton: {
-        backgroundColor: "#FF6B6B",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 8,
-        width: "48%",
-    },
-    noSensorsText: {
-        color: colorScheme.tint,
-        fontSize: 14,
-        fontStyle: "italic",
-        textAlign: "center",
-        marginVertical: 20,
-        opacity: 0.7,
-    },
-    titleContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    titleText: {
-        color: colorScheme.tint,
-        fontSize: 16,
-        fontWeight: "bold",
-        marginLeft: 8,
-    },
-    locationRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 2,
-    },
-    sensingTitleContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    sensingTitleText: {
-        color: colorScheme.tint,
-        fontSize: 14,
-        marginLeft: 6,
-    },
-});

@@ -1,34 +1,43 @@
-import { PropsWithChildren, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
+export type CollapsibleProps = {
+  children: React.ReactNode;
+  title: React.ReactNode | string;
+  headerStyle?: any;
+};
+
+export function Collapsible({ children, title, headerStyle }: CollapsibleProps) {
   const [isOpen, setIsOpen] = useState(false);
   const theme = useColorScheme() ?? 'light';
 
   return (
-    <ThemedView>
+    <View>
       <TouchableOpacity
-        style={styles.heading}
+        style={[styles.heading, headerStyle]}
         onPress={() => setIsOpen((value) => !value)}
         activeOpacity={0.8}>
-        <IconSymbol
-          name="chevron.right"
+        {typeof title === 'string' ? (
+          <ThemedText style={[styles.headingText, headerStyle && { color: '#FFFFFF' }]}>
+            {title}
+          </ThemedText>
+        ) : (
+          title
+        )}
+        <Ionicons
+          name={isOpen ? 'chevron-down' : 'chevron-forward'}
           size={18}
-          weight="medium"
-          color={theme === 'light' ? Colors.light.icon : Colors.dark.icon}
-          style={{ transform: [{ rotate: isOpen ? '90deg' : '0deg' }] }}
+          color={headerStyle ? '#FFFFFF' : theme === 'light' ? Colors.light.icon : Colors.dark.icon}
         />
-
-        <ThemedText type="defaultSemiBold">{title}</ThemedText>
       </TouchableOpacity>
-      {isOpen && <ThemedView style={styles.content}>{children}</ThemedView>}
-    </ThemedView>
+      <ThemedView style={[styles.content, { display: isOpen ? 'flex' : 'none' }]}>{children}</ThemedView>
+    </View>
   );
 }
 
@@ -37,6 +46,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  headingText: {
+    // Add any specific styles for the heading text here
   },
   content: {
     marginTop: 6,
