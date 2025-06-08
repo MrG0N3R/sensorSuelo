@@ -30,6 +30,7 @@ export default function HomeScreen() {
         allDevices,
         connectToDevice,
         connectedDevice,
+        connectedDeviceName,
         humi,
         temp,
         cond,
@@ -86,6 +87,7 @@ export default function HomeScreen() {
         const newPackage: PackageData = {
             packageName: packageName,
             packageId: Date.now(),
+            deviceName: connectedDeviceName || "tamachi",
             location: {
                 latitude,
                 longitude,
@@ -208,7 +210,14 @@ export default function HomeScreen() {
 
     const uploadPackagesToServer = () => {
         console.log("Uploading packages to server:");
-        console.log(JSON.stringify(savedPackages, null, 2));
+        
+        // Asegurar que todos los paquetes tengan deviceName
+        const packagesWithDeviceName = savedPackages.map(pkg => ({
+            ...pkg,
+            deviceName: pkg.deviceName || "tamachi"
+        }));
+        
+        console.log(JSON.stringify(packagesWithDeviceName, null, 2));
 
         if (savedPackages.length === 0) {
             Alert.alert("Información", "No hay paquetes guardados para subir");

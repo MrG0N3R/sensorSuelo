@@ -23,6 +23,7 @@ export type SensorData = {
 export type PackageData = {
     packageName: string;
     packageId: number;
+    deviceName?: string;
     location: {
         latitude: number;
         longitude: number;

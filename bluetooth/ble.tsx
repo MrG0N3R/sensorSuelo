@@ -20,6 +20,7 @@ interface BluetoothLowEnergyApi {
   connectToDevice: (deviceId: Device) => Promise<void>;
   disconnectFromDevice: () => void;
   connectedDevice: Device | null;
+  connectedDeviceName: string | null;
   allDevices: Device[];
   humi: number;
   temp: number;
@@ -34,6 +35,7 @@ function useBLE(): BluetoothLowEnergyApi {
   const bleManager = useMemo(() => new BleManager(), []);
   const [allDevices, setAllDevices] = useState<Device[]>([]);
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
+  const [connectedDeviceName, setConnectedDeviceName] = useState<string | null>(null);
   const [humi, setHumi] = useState<number>(0);
   const [temp, setTemp] = useState<number>(0);
   const [cond, setCond] = useState<number>(0);
@@ -127,6 +129,7 @@ function useBLE(): BluetoothLowEnergyApi {
     try {
       const deviceConnection = await bleManager.connectToDevice(device.id);
       setConnectedDevice(deviceConnection);
+      setConnectedDeviceName(device.name || device.localName || "tamachi");
       await deviceConnection.discoverAllServicesAndCharacteristics();
       bleManager.stopDeviceScan();
       startStreamingData(deviceConnection);
@@ -140,6 +143,7 @@ function useBLE(): BluetoothLowEnergyApi {
     if (connectedDevice) {
       bleManager.cancelDeviceConnection(connectedDevice.id);
       setConnectedDevice(null);
+      setConnectedDeviceName(null);
       setHumi(0);
       setTemp(0);
       setCond(0);
@@ -305,6 +309,7 @@ function useBLE(): BluetoothLowEnergyApi {
     connectToDevice,
     allDevices,
     connectedDevice,
+    connectedDeviceName,
     disconnectFromDevice,
     humi,
     temp,
