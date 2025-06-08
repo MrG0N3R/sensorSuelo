@@ -6,25 +6,34 @@
   "build": {
     "default": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk", 
+        "distribution": "internal"
       }
     },
-    
     "development": {
-      "developmentClient": true,
-      "distribution": "internal"
+      "android": {
+        "buildType": "apk", 
+        "distribution": "internal"
+      },
+      "developmentClient": true
     },
     "preview": {
-      "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk", 
+        "distribution": "internal"
       }
     },
     "production": {
+      "android": {
+        "buildType": "apk",
+        "distribution": "store" 
+      },
       "autoIncrement": true
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      
+    }
   }
 }

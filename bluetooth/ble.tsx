@@ -10,22 +10,8 @@ import {
 
 import * as ExpoDevice from "expo-device";
 
-
-const HEART_RATE_UUID = "0000180d-0000-1000-8000-00805f9b34fb";
-const HEART_RATE_CHARACTERISTIC = "00002a37-0000-1000-8000-00805f9b34fb";
-
-
 const SERVICE_UUID = "19b10000-e8f2-537e-4f6c-d104768a1214";
-
-const HUMI_CHARACTERISTIC_UUID = "b256faae-1447-4e32-9410-2c2653d3885c";
-const TEMP_CHARACTERISTIC_UUID = "86dd3402-7feb-4e7c-80d0-a4ba5709f1ad";
-const COND_CHARACTERISTIC_UUID = "7ff02cdb-c26f-4e64-ac9d-203d4b03094d";
-const PH_CHARACTERISTIC_UUID = "a38cdf97-2ace-42e3-8ec8-c4a2caffb1fe";
-const NITRO_CHARACTERISTIC_UUID = "89b4a0fa-eb32-4666-85d4-16a0ef4c706b";
-const PHOS_CHARACTERISTIC_UUID = "77f636f6-456c-4d76-aec6-7e439a99abd3";
-const POTA_CHARACTERISTIC_UUID = "35e92c28-d928-466b-8911-d235ae07f6e7";
-
-
+const SENSOR_CHARACTERISTIC_UUID = "19b10001-e8f2-537e-4f6c-d104768a1214"; // La característica donde se agrupan todos los datos
 
 interface BluetoothLowEnergyApi {
   requestPermissions(): Promise<boolean>;
@@ -158,73 +144,13 @@ function useBLE(): BluetoothLowEnergyApi {
     }
   };
 
-  const onPhUpdate = (
-    error: BleError | null,
-    characteristic: Characteristic | null
-  ) => {  
-    if (error) {
-      console.log(error);
-      return -1;
-    } else if (!characteristic?.value) {
-      console.log("No Data was received");
-      return -1;
-    }
-
-    try {
-      // Convierte el valor base64 a un buffer
-      const rawData = Buffer.from(characteristic.value, 'base64');
-      
-      // Decodifica el buffer a texto ASCII/UTF-8
-      const stringValue = rawData.toString('utf-8').trim();
-
-      // Convierte el string a float
-      const value = parseFloat(stringValue);
-
-      if (isNaN(value)) {
-        console.log("Parsed value is NaN, received string:", stringValue);
-        return -1;
-      }
-
-      // Aquí ajusta según la escala real que esperas (si es necesario)
-      setPh(value);
-
-    } catch (e) {
-      console.log("Error decoding pH value:", e);
-    }
-  }
-
-  const onHumiUpdate = (
-    error: BleError | null,
-    characteristic: Characteristic | null
-  ) => {  
-    if (error) {
-      console.log(error);
-      return -1;
-    } else if (!characteristic?.value) {
-      console.log("No Data was received");
-      return -1;
-    }
-
-    try {
-      const rawData = Buffer.from(characteristic.value, 'base64');
-      const stringValue = rawData.toString('utf-8').trim();
-      const value = parseFloat(stringValue);
-      if (isNaN(value)) {
-        console.log("Parsed value is NaN, received string:", stringValue);
-        return -1;
-      }
-      setHumi(value);
-    } catch (e) {
-      console.log("Error decoding humidity value:", e);
-    }
-  };
-
-  const onTempUpdate = (
+  // Función que maneja la actualización de los datos agrupados
+  const onSensorUpdate = (
     error: BleError | null,
     characteristic: Characteristic | null
   ) => {
     if (error) {
-      console.log(error);
+      console.log("Error:", error);
       return -1;
     } else if (!characteristic?.value) {
       console.log("No Data was received");
@@ -234,171 +160,34 @@ function useBLE(): BluetoothLowEnergyApi {
     try {
       const rawData = Buffer.from(characteristic.value, 'base64');
       const stringValue = rawData.toString('utf-8').trim();
-      const value = parseFloat(stringValue);
-      if (isNaN(value)) {
-        console.log("Parsed value is NaN, received string:", stringValue);
-        return -1;
+
+      // El string contiene todos los valores separados por coma
+      const values = stringValue.split(',');
+
+      // Asignamos los valores a sus respectivos estados
+      if (values.length === 7) {
+        setHumi(parseFloat(values[0]));
+        setTemp(parseFloat(values[1]));
+        setCond(parseFloat(values[2]));
+        setPh(parseFloat(values[3]));
+        setNitro(parseFloat(values[4]));
+        setPhos(parseFloat(values[5]));
+        setPota(parseFloat(values[6]));
+      } else {
+        console.log("Incorrect data format", stringValue);
       }
-      setTemp(value);
     } catch (e) {
-      console.log("Error decoding temperature value:", e);
+      console.log("Error decoding sensor data:", e);
     }
   };
-
-  const onCondUpdate = (
-    error: BleError | null,
-    characteristic: Characteristic | null
-  ) => {
-    if (error) {
-      console.log(error);
-      return -1;
-    } else if (!characteristic?.value) {
-      console.log("No Data was received");
-      return -1;
-    }
-
-    try {
-      const rawData = Buffer.from(characteristic.value, 'base64');
-      const stringValue = rawData.toString('utf-8').trim();
-      const value = parseFloat(stringValue);
-      if (isNaN(value)) {
-        console.log("Parsed value is NaN, received string:", stringValue);
-        return -1;  
-      }
-      setCond(value);
-    } catch (e) {
-      console.log("Error decoding conductivity value:", e);
-    }
-  };
-
-  const onNitroUpdate = (
-    error: BleError | null,
-    characteristic: Characteristic | null
-  ) => {
-    if (error) {
-      console.log(error);
-      return -1;
-    } else if (!characteristic?.value) {
-      console.log("No Data was received");
-      return -1;
-    }
-
-    try {
-      const rawData = Buffer.from(characteristic.value, 'base64');
-      const stringValue = rawData.toString('utf-8').trim();
-      const value = parseFloat(stringValue);
-      if (isNaN(value)) {
-        console.log("Parsed value is NaN, received string:", stringValue);
-        return -1;
-      }
-      setNitro(value);
-    } catch (e) {
-      console.log("Error decoding nitrogen value:", e);
-    }
-  };
-
-  const onPhosUpdate = (
-    error: BleError | null,
-    characteristic: Characteristic | null
-  ) => {
-    if (error) {
-      console.log(error);
-      return -1;
-    } else if (!characteristic?.value) {
-      console.log("No Data was received");
-      return -1;
-    }
-
-    try {
-      const rawData = Buffer.from(characteristic.value, 'base64');
-      const stringValue = rawData.toString('utf-8').trim();
-      const value = parseFloat(stringValue);
-      if (isNaN(value)) {
-        console.log("Parsed value is NaN, received string:", stringValue);
-        return -1;
-      }
-      setPhos(value);
-    } catch (e) {
-      console.log("Error decoding phosphorus value:", e);
-    }
-  };
-
-  const onPotaUpdate = (
-    error: BleError | null,
-    characteristic: Characteristic | null
-  ) => {
-    if (error) {
-      console.log(error);
-      return -1;
-    } else if (!characteristic?.value) {
-      console.log("No Data was received");
-      return -1;
-    }
-
-    try {
-      const rawData = Buffer.from(characteristic.value, 'base64');
-      const stringValue = rawData.toString('utf-8').trim();
-      const value = parseFloat(stringValue);
-      if (isNaN(value)) {
-        console.log("Parsed value is NaN, received string:", stringValue);
-        return -1;
-      }
-      setPota(value);
-    } catch (e) {
-      console.log("Error decoding potassium value:", e);
-    }
-  };
-  
 
   const startStreamingData = async (device: Device) => {
     if (device) {
       device.monitorCharacteristicForService(
         SERVICE_UUID,
-        PH_CHARACTERISTIC_UUID,
-        onPhUpdate
+        SENSOR_CHARACTERISTIC_UUID,
+        onSensorUpdate
       );
-      device.monitorCharacteristicForService(
-        SERVICE_UUID,
-        HUMI_CHARACTERISTIC_UUID,
-        onHumiUpdate
-      );
-      
-      device.monitorCharacteristicForService(
-        SERVICE_UUID,
-        TEMP_CHARACTERISTIC_UUID,
-        onTempUpdate
-      );
-      
-      device.monitorCharacteristicForService(
-        SERVICE_UUID,
-        COND_CHARACTERISTIC_UUID,
-        onCondUpdate
-      );
-      
-      device.monitorCharacteristicForService(
-        SERVICE_UUID,
-        PH_CHARACTERISTIC_UUID,
-        onPhUpdate
-      );
-      
-      device.monitorCharacteristicForService(
-        SERVICE_UUID,
-        NITRO_CHARACTERISTIC_UUID,
-        onNitroUpdate
-      );
-      
-      device.monitorCharacteristicForService(
-        SERVICE_UUID,
-        PHOS_CHARACTERISTIC_UUID,
-        onPhosUpdate
-      );
-      
-      device.monitorCharacteristicForService(
-        SERVICE_UUID,
-        POTA_CHARACTERISTIC_UUID,
-        onPotaUpdate
-      );
-      
     } else {
       console.log("No Device Connected");
     }
