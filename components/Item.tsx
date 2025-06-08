@@ -80,7 +80,7 @@ export function Item({
                                     Conductividad
                                 </Text>
                                 <Text style={styles.valueText}>
-                                    {cond} us/cm
+                                    {cond} µs/cm
                                 </Text>
                             </View>
                         </View>
