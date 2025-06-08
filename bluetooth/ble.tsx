@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
 import {
   BleError,
@@ -45,6 +45,10 @@ function useBLE(): BluetoothLowEnergyApi {
   // Estados para almacenar paquetes parciales
   const [packet1Data, setPacket1Data] = useState<string>("");
   const [packet2Data, setPacket2Data] = useState<string>("");
+  
+  // Referencias para debouncing
+  const processingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastUpdateRef = useRef<number>(0);
 
   const requestAndroid31Permissions = async () => {
     const bluetoothScanPermission = await PermissionsAndroid.request(
@@ -145,10 +149,24 @@ function useBLE(): BluetoothLowEnergyApi {
       setPota(0);
       setPacket1Data("");
       setPacket2Data("");
+      
+      // Limpiar timeout si existe
+      if (processingTimeoutRef.current) {
+        clearTimeout(processingTimeoutRef.current);
+        processingTimeoutRef.current = null;
+      }
+      lastUpdateRef.current = 0;
     }
   };
 
-  const processCompleteData = (packet1: string, packet2: string) => {
+  const processCompleteData = useCallback((packet1: string, packet2: string) => {
+    const now = Date.now();
+    // Debounce: solo procesar si han pasado al menos 500ms desde la última actualización
+    if (now - lastUpdateRef.current < 500) {
+      return;
+    }
+    lastUpdateRef.current = now;
+
     const combinedString = (packet1 + "," + packet2).replace(/[\r\n\t]/g, '').trim();
     console.log("Combined string (cleaned):", JSON.stringify(combinedString));
 
@@ -160,19 +178,19 @@ function useBLE(): BluetoothLowEnergyApi {
 
       console.log("Split values:", values);
       console.log("Values count:", values.length);
-      values.forEach((val, index) => {
-        console.log(`Value ${index}: "${val}" -> ${parseFloat(val)}`);
-      });
 
       if (values.length >= 7) {
         const parsed = values.map((val) => parseFloat(val));
-        setTemp(parsed[0] || 0);   // Temperatura
-        setHumi(parsed[1] || 0);   // Humedad
-        setCond(parsed[2] || 0);   // Conductividad
-        setPh(parsed[3] || 0);     // pH
-        setNitro(parsed[4] || 0);  // Nitrógeno
-        setPhos(parsed[5] || 0);   // Fósforo
-        setPota(parsed[6] || 0);   // Potasio
+        
+        // Actualizar todos los estados de una vez para evitar múltiples re-renders
+        setTemp(parsed[0] || 0);
+        setHumi(parsed[1] || 0);
+        setCond(parsed[2] || 0);
+        setPh(parsed[3] || 0);
+        setNitro(parsed[4] || 0);
+        setPhos(parsed[5] || 0);
+        setPota(parsed[6] || 0);
+        
         console.log("All values set:", parsed);
       } else {
         console.log("Expected 7 values, got", values.length);
@@ -180,10 +198,24 @@ function useBLE(): BluetoothLowEnergyApi {
     } catch (e) {
       console.log("Error decoding data:", e);
     }
-  };
+  }, []);
+
+  const scheduleProcessing = useCallback((packet1: string, packet2: string) => {
+    // Cancelar timeout anterior si existe
+    if (processingTimeoutRef.current) {
+      clearTimeout(processingTimeoutRef.current);
+    }
+
+    // Programar procesamiento con un pequeño delay para evitar múltiples ejecuciones
+    processingTimeoutRef.current = setTimeout(() => {
+      if (packet1 && packet2) {
+        processCompleteData(packet1, packet2);
+      }
+    }, 100);
+  }, [processCompleteData]);
 
   // Función para manejar el paquete 1 (Temperatura, Humedad, Conductividad)
-  const onPacket1Update = (
+  const onPacket1Update = useCallback((
     error: BleError | null,
     characteristic: Characteristic | null
   ) => {
@@ -202,17 +234,20 @@ function useBLE(): BluetoothLowEnergyApi {
       console.log("Packet 1 received:", stringValue);
       setPacket1Data(stringValue);
       
-      // Si ya tenemos packet2, procesar datos completos
-      if (packet2Data) {
-        processCompleteData(stringValue, packet2Data);
-      }
+      // Programar procesamiento si tenemos ambos paquetes
+      setPacket2Data(prevPacket2 => {
+        if (prevPacket2) {
+          scheduleProcessing(stringValue, prevPacket2);
+        }
+        return prevPacket2;
+      });
     } catch (e) {
       console.log("Error decoding Packet 1:", e);
     }
-  };
+  }, [scheduleProcessing]);
 
   // Función para manejar el paquete 2 (pH, Nitrógeno, Fósforo, Potasio)
-  const onPacket2Update = (
+  const onPacket2Update = useCallback((
     error: BleError | null,
     characteristic: Characteristic | null
   ) => {
@@ -231,14 +266,17 @@ function useBLE(): BluetoothLowEnergyApi {
       console.log("Packet 2 received:", stringValue);
       setPacket2Data(stringValue);
       
-      // Si ya tenemos packet1, procesar datos completos
-      if (packet1Data) {
-        processCompleteData(packet1Data, stringValue);
-      }
+      // Programar procesamiento si tenemos ambos paquetes
+      setPacket1Data(prevPacket1 => {
+        if (prevPacket1) {
+          scheduleProcessing(prevPacket1, stringValue);
+        }
+        return prevPacket1;
+      });
     } catch (e) {
       console.log("Error decoding Packet 2:", e);
     }
-  };
+  }, [scheduleProcessing]);
 
   const startStreamingData = async (device: Device) => {
     if (device) {
